@@ -4,8 +4,38 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Plugin Test Page</title>
+  <style>
+    /* Test site styles */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+    }
+
+    body {
+      margin: 5vh auto;
+      width: min(60ch, 100vw - 3rem);
+      line-height: 1.5;
+      font-family: system-ui, sans-serif;
+    }
+
+    body > * + * {
+      margin-top: 1.5em;
+    }
+
+    a {
+      color: #0f6bb9;
+      text-underline-offset: 0.15em;
+    }
+
+    code {
+      color: mediumvioletred;
+      font-size: 2.25ex;
+    }
+
+    {% include "assets/style.css" %}
+  </style>
 </head>
 <body>
-  {{ content | safe }}
+  {{ content | cssSupportPanels | safe }}
 </body>
 </html>

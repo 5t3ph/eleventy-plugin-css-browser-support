@@ -1,20 +1,205 @@
-// Example use for the demo plugin:
-// {{ 'Steph' | hello | safe }}
+const { cssBrowserSupport, BROWSERS } = require("css-browser-support");
+
+const PLUGIN = "css-support";
+const defaults = {
+  browserList: ["chrome", "edge", "firefox", "safari"],
+  showPanelTable: true,
+  includePanelJS: true,
+};
+
+const fs = require("fs");
+const path = require("path");
+const panelJS = fs.readFileSync(
+  path.resolve(__dirname, "panels.min.js"),
+  "utf8"
+);
+
+const createPanelSupportTable = (
+  browserList,
+  query,
+  label,
+  codeContent,
+  showTable = true
+) => {
+  const supportData = cssBrowserSupport(query)[query];
+
+  if (supportData) {
+    let table = "";
+    if (showTable) {
+      let tableHeader = "";
+      let tableRow = "";
+      browserList.map((browser) => {
+        const support = supportData[browser].sinceVersion
+          ? `v${supportData[browser].sinceVersion}+`
+          : "N/A";
+        tableHeader += `<th>${supportData[browser].browserTitle}</th>`;
+        tableRow += `<td>${support}</td>`;
+      });
+
+      table = `<div class="${PLUGIN}-panel-table-container"><table class="${PLUGIN}-table"><caption>${label}</caption><thead>${tableHeader}</thead><tbody><tr>${tableRow}</tr></tbody></table></div>`;
+    }
+
+    return `${table}<small><em>Global <code>${codeContent}</code> support:</em> ${supportData.globalSupport}%<br><a href="https://caniuse.com/?search=${codeContent}">caniuse data for ${codeContent}</a></small>`;
+  }
+
+  return "";
+};
+
+const browserCheck = (browserList) => {
+  let valid = true;
+  browserList.map((b) => {
+    if (!BROWSERS.includes(b)) {
+      showError(`${b} is not a valid browser`);
+      valid = false;
+    }
+  });
+  return valid;
+};
+
+const showError = (msg) => {
+  console.log("\x1b[31m%s\x1b[0m", msg);
+};
 
 module.exports = (eleventyConfig, options) => {
-  // Define defaults for your plugin config
-  const defaults = {
-    htmlTag: "h2",
+  // Combine defaults with user defined options
+  const { browserList, showPanelTable, includePanelJS } = {
+    ...defaults,
+    ...options,
   };
 
-  // You can create more than filters as a plugin, but here's an example
-  eleventyConfig.addFilter("hello", (name) => {
-    // Combine defaults with user defined options
-    const { htmlTag } = {
-      ...defaults,
-      ...options,
-    };
+  // Filter to opt-in to support panels
+  eleventyConfig.addFilter("cssSupport", (query) => {
+    if (browserCheck(browserList)) {
+      const supportData = query === "gap" ? false : cssBrowserSupport(query);
+      if (supportData) {
+        return `<code data-css-support>${query}</code>`;
+      }
+    }
 
-    return `<${htmlTag}>Hello, ${name}!</${htmlTag}>`;
+    return `<code>${query}</code>`;
+  });
+
+  // Template filter to append panel data
+  eleventyConfig.addFilter("cssSupportPanels", (templateContent) => {
+    let originalContent = templateContent;
+    let content = originalContent;
+
+    if (browserCheck(browserList)) {
+      const codeRegex =
+        /<code data-css-support(?:\sclass=".*")?>([\w-]+)?(:?(.*?))<\/code>/gm;
+      let queryMatches = new Set();
+
+      let supportPanels = [];
+
+      let m;
+      while ((m = codeRegex.exec(originalContent)) !== null) {
+        if (m.index === codeRegex.lastIndex) {
+          codeRegex.lastIndex++;
+        }
+
+        const codeBlock = m[0];
+        const query = m[1];
+        const value = m[2] ? m[2] : "";
+
+        // Only attach to first instance of duplicate queries
+        if (queryMatches.has(query)) continue;
+
+        queryMatches.add(query);
+
+        const queryValue = value === "()" ? value : "";
+        const codeContent = `${query}${queryValue}`;
+        const label = `Browser support for <code>${codeContent}</code>`;
+        const ariaLabel = `Browser support for ${codeContent}`;
+
+        const supportPanel =
+          `<span class="${PLUGIN}-panel-container"><code>${query}${value}</code><button type="button" class="${PLUGIN}-button" aria-label="${ariaLabel}" aria-expanded="false" aria-controls="${PLUGIN}-${query}"> <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="${PLUGIN}-icon" viewBox="0 0 24 24" width="24" height="24" style="pointer-events: none"><path fill="currentColor" d="M7 17h2v-7H7Zm4 0h2V7h-2Zm4 0h2v-4h-2ZM5 21q-.8 0-1.4-.6Q3 19.8 3 19V5q0-.8.6-1.4Q4.2 3 5 3h14q.8 0 1.4.6.6.6.6 1.4v14q0 .8-.6 1.4-.6.6-1.4.6Z"/></svg></button></span>`.trim();
+
+        supportPanels.push(
+          `<div hidden id="${PLUGIN}-${query}" class="${PLUGIN}-panel">${createPanelSupportTable(
+            browserList,
+            query,
+            label,
+            codeContent,
+            showPanelTable
+          )}</div>`
+        );
+
+        content = content.replace(codeBlock, supportPanel);
+      }
+
+      let panelScript = "";
+      if (includePanelJS) {
+        panelScript = `<script>${panelJS}</script>`;
+      }
+
+      return content + supportPanels.join("") + "\n" + panelScript;
+    }
+
+    return content;
+  });
+
+  // Shortcode to render a support table for one or more queries
+  eleventyConfig.addShortcode("cssSupportTable", (queryList) => {
+    if (browserCheck(browserList)) {
+      let queries = queryList.includes(",")
+        ? queryList.split(",")
+        : [queryList];
+      queries = queries.map((i) => i.trim());
+      const supportData = cssBrowserSupport(queries);
+      let table = "";
+
+      // Handle special case: gap
+      if (queries.includes("gap")) {
+        queries.splice(queries.indexOf("gap"), 1);
+        queries.push("gap - flexbox");
+        queries.push("gap - grid");
+      }
+
+      if (supportData) {
+        let tableHeader = ["<td></td>"];
+        let tableRows = [];
+        for (let query of queries) {
+          query = query.trim();
+          const queryData = supportData[query.replace(/@|:|\(|\)*/g, "")];
+
+          if (queryData) {
+            let tableRow = `<tr><th><code>${query}</code></th>`;
+
+            browserList.map((browser, i) => {
+              const support = queryData[browser].sinceVersion
+                ? `v${queryData[browser].sinceVersion}`
+                : "N/A";
+
+              if (!tableHeader[i + 1]) {
+                tableHeader[
+                  i + 1
+                ] = `<th>${queryData[browser].browserTitle}</th>`;
+              }
+
+              tableRow += `<td>${support}</td>`;
+            });
+
+            tableRow += `<td><a href="https://caniuse.com/?search=${query}">${queryData.globalSupport}%</a></td>`;
+
+            tableRows.push(tableRow + "</tr>");
+          } else {
+            showError(`Sorry - '${query}' has no available support data`);
+          }
+        }
+
+        tableHeader.push(`<th>Global Support</th>`);
+
+        table = `<div class="${PLUGIN}-table-container"><table class="${PLUGIN}-table">
+        <thead>${tableHeader.join("")}</thead>
+        <tbody>${tableRows.join("")}</tbody>
+      </table>
+      <p>Global support data from <a href="https://caniuse.com/">caniuse.com</a></p>
+      </div>`;
+      }
+
+      return table;
+    }
+
+    return "";
   });
 };

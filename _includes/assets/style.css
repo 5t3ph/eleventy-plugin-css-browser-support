@@ -1,0 +1,204 @@
+/*
+ * PLUGIN STYLES
+ */
+.css-support-panel-container {
+  position: relative;
+}
+
+.css-support-button {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: transparent;
+  border: 1px solid transparent;
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  vertical-align: sub;
+  cursor: pointer;
+  display: inline-flex;
+  gap: 0.15em;
+  transition: 250ms;
+  transition-property: color;
+}
+
+.css-support-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.css-support-panel-container code {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: 0.1em;
+  text-underline-offset: 0.25em;
+}
+
+.css-support-panel-container:hover code,
+.css-support-button:is(:hover, :focus) {
+  color: blue;
+}
+
+.css-support-button:focus-visible {
+  outline: max(0.15em, 2px) solid currentColor;
+}
+
+.css-support-button svg {
+  display: block;
+  width: 1.25em;
+  height: 1.25em;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.css-support-panel {
+  position: absolute;
+  top: calc(100% + 0.35em);
+  left: var(--cps-panel-left, 50%);
+  transform: translateX(var(--cps-panel-x, -50%));
+  max-width: calc(100vw - 2rem);
+  background-color: #fff;
+  padding: 1rem;
+  border-radius: 1rem;
+  border: 1px solid hsl(0 0% 65%);
+  filter: drop-shadow(1px 1px 4px hsla(0 0% 0% / 35%));
+  z-index: 1;
+  will-change: filter;
+}
+
+.css-support-panel-table-container,
+.css-support-table-container {
+  overflow-x: auto;
+  background: linear-gradient(90deg, #fff 33%, rgba(255, 255, 255, 0)),
+    linear-gradient(90deg, rgba(255, 255, 255, 0), #fff 66%) 0 100%,
+    radial-gradient(
+      farthest-side at 0 50%,
+      rgb(106 106 106 / 50%),
+      rgba(255, 255, 255, 0)
+    ),
+    radial-gradient(
+        farthest-side at 100% 50%,
+        rgba(106 106 106 / 50%),
+        rgba(255, 255, 255, 0)
+      )
+      0 100%;
+  background-repeat: no-repeat;
+  background-size: 20px 100%, 20px 100%, 10px 100%, 10px 100%;
+  background-position: 0 0, 100%, 0 0, 100%;
+  background-attachment: local, local, scroll, scroll;
+}
+
+.css-support-panel::before {
+  content: "";
+  border: 0.5rem solid transparent;
+  border-bottom-color: #fff;
+  position: absolute;
+  left: var(--cps-pointer-left, 50%);
+  top: 0;
+  transform: translate(var(--cps-pointer-x, -50%), -100%);
+  filter: drop-shadow(0 -1px hsla(0 0% 0% / 25%));
+}
+
+.css-support-panel--left {
+  --cps-panel-left: 0;
+  --cps-panel-x: -1em;
+  --cps-pointer-left: 2em;
+  --cps-pointer-x: 0;
+}
+
+.css-support-panel--right {
+  --cps-panel-left: auto;
+  --cps-panel-x: 0;
+  --cps-pointer-left: calc(100% - 3.5em);
+  --cps-pointer-x: 0;
+
+  right: -1em;
+}
+
+.css-support-table {
+  border-collapse: collapse;
+  width: 100%;
+  mix-blend-mode: multiply;
+}
+
+.css-support-table :is(th, td) {
+  padding: 0.35em 0.5em;
+}
+
+.css-support-table caption {
+  text-align: left;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.css-support-table caption code {
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.css-support-panel :is(caption, small) {
+  line-height: 1.4;
+}
+
+.css-support-table thead > * {
+  background-color: hsl(0 0% 95%);
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.css-support-table tbody th {
+  font-size: 0.75rem;
+}
+
+.css-support-table th:first-child {
+  text-align: left;
+}
+
+.css-support-table a {
+  text-decoration: underline;
+  text-decoration-thickness: 0.1em;
+  text-decoration-style: dotted;
+  text-decoration-color: hsl(0 0% 40%);
+}
+
+.css-support-table a:hover {
+  text-decoration-style: solid;
+}
+
+.css-support-table tr td {
+  text-align: center;
+  font-weight: 300;
+  letter-spacing: 0.05em;
+}
+
+.css-support-table thead th + th {
+  border-left: 1px solid;
+}
+
+.css-support-table tr + tr {
+  border-top: 1px solid;
+}
+
+.css-support-table-container p {
+  width: fit-content;
+  margin: 1rem auto 0;
+  font-size: 0.9em;
+  font-style: italic;
+  text-align: center;
+  background-color: hsl(0 0% 95%);
+  padding: 0.25em 1em;
+  border-radius: 1em;
+  color: hsl(0 0% 40%);
+}
+
+.css-support-panel small {
+  display: block;
+  margin-top: 0.5rem;
+}
+
+.css-support-table-container a {
+  color: inherit;
+}
