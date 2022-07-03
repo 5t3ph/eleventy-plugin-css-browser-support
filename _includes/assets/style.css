@@ -37,7 +37,7 @@
   text-underline-offset: 0.25em;
 }
 
-.css-support-panel-container:hover code,
+.css-support-panel-container:hover > code,
 .css-support-button:is(:hover, :focus) {
   color: blue;
 }

@@ -128,7 +128,7 @@ module.exports = (eleventyConfig, options) => {
       }
 
       let panelScript = "";
-      if (includePanelJS) {
+      if (supportPanels.length && includePanelJS) {
         panelScript = `<script>${panelJS}</script>`;
       }
 
