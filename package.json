@@ -35,6 +35,6 @@
     "terser": "^5.14.1"
   },
   "dependencies": {
-    "css-browser-support": "^0.1.0"
+    "css-browser-support": "^0.1.3"
   }
 }
