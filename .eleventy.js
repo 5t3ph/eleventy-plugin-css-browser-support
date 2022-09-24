@@ -33,7 +33,7 @@ const createPanelSupportTable = (
           ? `v${supportData[browser].sinceVersion}+`
           : "N/A";
         tableHeader += `<th>${supportData[browser].browserTitle}</th>`;
-        tableRow += `<td>${support}</td>`;
+        tableRow += `<td ${support === 'N/A' ? `class="${PLUGIN}-cell--na"` : ``}>${support}</td>`;
       });
 
       table = `<div class="${PLUGIN}-panel-table-container"><table class="${PLUGIN}-table"><caption>${label}</caption><thead>${tableHeader}</thead><tbody><tr>${tableRow}</tr></tbody></table></div>`;
@@ -176,7 +176,7 @@ module.exports = (eleventyConfig, options) => {
                 ] = `<th>${queryData[browser].browserTitle}</th>`;
               }
 
-              tableRow += `<td>${support}</td>`;
+              tableRow += `<td ${support === 'N/A' ? `class="${PLUGIN}-cell--na"` : ``}>${support}</td>`;
             });
 
             tableRow += `<td><a href="https://caniuse.com/?search=${query}">${queryData.globalSupport}%</a></td>`;
