@@ -182,6 +182,13 @@
   border-top: 1px solid;
 }
 
+.css-support-cell--na {
+  font-style: italic;
+  font-size: 0.8em;
+  color: #8a3d59;
+  text-transform: lowercase;
+}
+
 .css-support-table-container p {
   width: fit-content;
   margin: 1rem auto 0;

@@ -29,11 +29,14 @@ const createPanelSupportTable = (
       let tableHeader = "";
       let tableRow = "";
       browserList.map((browser) => {
-        const support = supportData[browser].sinceVersion
-          ? `v${supportData[browser].sinceVersion}+`
-          : "N/A";
-        tableHeader += `<th>${supportData[browser].browserTitle}</th>`;
-        tableRow += `<td ${support === 'N/A' ? `class="${PLUGIN}-cell--na"` : ``}>${support}</td>`;
+        const { sinceVersion, browserTitle } = supportData[browser];
+        const support = sinceVersion ? `v${sinceVersion}+` : "N/A";
+        tableHeader += `<th class="${PLUGIN}-header--${browserTitle
+          .toLowerCase()
+          .replaceAll(" ", "-")}">${browserTitle}</th>`;
+        tableRow += `<td ${
+          support === "N/A" ? `class="${PLUGIN}-cell--na"` : ``
+        }>${support}</td>`;
       });
 
       table = `<div class="${PLUGIN}-panel-table-container"><table class="${PLUGIN}-table"><caption>${label}</caption><thead>${tableHeader}</thead><tbody><tr>${tableRow}</tr></tbody></table></div>`;
@@ -166,17 +169,20 @@ module.exports = (eleventyConfig, options) => {
             let tableRow = `<tr><th><code>${query}</code></th>`;
 
             browserList.map((browser, i) => {
-              const support = queryData[browser].sinceVersion
-                ? `v${queryData[browser].sinceVersion}`
-                : "N/A";
+              const { sinceVersion, browserTitle } = queryData[browser];
+              const support = sinceVersion ? `v${sinceVersion}+` : "N/A";
 
               if (!tableHeader[i + 1]) {
                 tableHeader[
                   i + 1
-                ] = `<th>${queryData[browser].browserTitle}</th>`;
+                ] = `<th class="${PLUGIN}-header--${browserTitle
+                  .toLowerCase()
+                  .replaceAll(" ", "-")}">${browserTitle}</th>`;
               }
 
-              tableRow += `<td ${support === 'N/A' ? `class="${PLUGIN}-cell--na"` : ``}>${support}</td>`;
+              tableRow += `<td ${
+                support === "N/A" ? `class="${PLUGIN}-cell--na"` : ``
+              }>${support}</td>`;
             });
 
             tableRow += `<td><a href="https://caniuse.com/?search=${query}">${queryData.globalSupport}%</a></td>`;
