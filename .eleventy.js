@@ -29,13 +29,23 @@ const createPanelSupportTable = (
       let tableHeader = "";
       let tableRow = "";
       browserList.map((browser) => {
-        const { sinceVersion, browserTitle } = supportData[browser];
+        const { sinceVersion, browserTitle, flagged } = supportData[browser];
         const support = sinceVersion ? `v${sinceVersion}+` : "N/A";
         tableHeader += `<th class="${PLUGIN}-header--${browserTitle
           .toLowerCase()
           .replaceAll(" ", "-")}">${browserTitle}</th>`;
+        let tableCellClasses;
+
+        if (flagged) {
+          tableCellClasses = `${PLUGIN}-cell--flagged`;
+        }
+
+        if (support === "N/A") {
+          tableCellClasses = `${PLUGIN}-cell--na`;
+        }
+
         tableRow += `<td ${
-          support === "N/A" ? `class="${PLUGIN}-cell--na"` : ``
+          tableCellClasses ? `class="${tableCellClasses}"` : ``
         }>${support}</td>`;
       });
 
@@ -65,7 +75,7 @@ const showError = (msg) => {
 
 module.exports = (eleventyConfig, options) => {
   // Combine defaults with user defined options
-  const { browserList, showPanelTable, includePanelJS } = {
+  const { browserList, showPanelTable, includePanelJS, tableCaption } = {
     ...defaults,
     ...options,
   };
@@ -142,70 +152,89 @@ module.exports = (eleventyConfig, options) => {
   });
 
   // Shortcode to render a support table for one or more queries
-  eleventyConfig.addShortcode("cssSupportTable", (queryList) => {
-    if (browserCheck(browserList)) {
-      let queries = queryList.includes(",")
-        ? queryList.split(",")
-        : [queryList];
-      queries = queries.map((i) => i.trim());
-      const supportData = cssBrowserSupport(queries);
-      let table = "";
+  eleventyConfig.addShortcode(
+    "cssSupportTable",
+    (queryList, captionOverride) => {
+      if (browserCheck(browserList)) {
+        let queries = queryList.includes(",")
+          ? queryList.split(",")
+          : [queryList];
+        queries = queries.map((i) => i.trim());
+        const supportData = cssBrowserSupport(queries);
+        let table = "";
 
-      // Handle special case: gap
-      if (queries.includes("gap")) {
-        queries.splice(queries.indexOf("gap"), 1);
-        queries.push("gap - flexbox");
-        queries.push("gap - grid");
-      }
-
-      if (supportData) {
-        let tableHeader = ["<td></td>"];
-        let tableRows = [];
-        for (let query of queries) {
-          query = query.trim();
-          const queryData = supportData[query.replace(/@|:|\(|\)*/g, "")];
-
-          if (queryData) {
-            let tableRow = `<tr><th><code>${query}</code></th>`;
-
-            browserList.map((browser, i) => {
-              const { sinceVersion, browserTitle } = queryData[browser];
-              const support = sinceVersion ? `v${sinceVersion}+` : "N/A";
-
-              if (!tableHeader[i + 1]) {
-                tableHeader[
-                  i + 1
-                ] = `<th class="${PLUGIN}-header--${browserTitle
-                  .toLowerCase()
-                  .replaceAll(" ", "-")}">${browserTitle}</th>`;
-              }
-
-              tableRow += `<td ${
-                support === "N/A" ? `class="${PLUGIN}-cell--na"` : ``
-              }>${support}</td>`;
-            });
-
-            tableRow += `<td><a href="https://caniuse.com/?search=${query}">${queryData.globalSupport}%</a></td>`;
-
-            tableRows.push(tableRow + "</tr>");
-          } else {
-            showError(`Sorry - '${query}' has no available support data`);
-          }
+        // Handle special case: gap
+        if (queries.includes("gap")) {
+          queries.splice(queries.indexOf("gap"), 1);
+          queries.push("gap - flexbox");
+          queries.push("gap - grid");
         }
 
-        tableHeader.push(`<th>Global Support</th>`);
+        if (supportData) {
+          let tableHeader = ["<td></td>"];
+          let tableRows = [];
+          for (let query of queries) {
+            query = query.trim();
+            const queryData = supportData[query.replace(/@|:|\(|\)*/g, "")];
 
-        table = `<div class="${PLUGIN}-table-container"><table class="${PLUGIN}-table">
+            if (queryData) {
+              let tableRow = `<tr><th><code>${query}</code></th>`;
+
+              browserList.map((browser, i) => {
+                const { sinceVersion, browserTitle, flagged } =
+                  queryData[browser];
+                const support = sinceVersion ? `v${sinceVersion}+` : "N/A";
+
+                if (!tableHeader[i + 1]) {
+                  tableHeader[
+                    i + 1
+                  ] = `<th class="${PLUGIN}-header--${browserTitle
+                    .toLowerCase()
+                    .replaceAll(" ", "-")}">${browserTitle}</th>`;
+                }
+
+                let tableCellClasses;
+
+                if (flagged) {
+                  tableCellClasses = `${PLUGIN}-cell--flagged`;
+                }
+
+                if (support === "N/A") {
+                  tableCellClasses = `${PLUGIN}-cell--na`;
+                }
+
+                tableRow += `<td ${
+                  tableCellClasses ? `class="${tableCellClasses}"` : ``
+                }>${support}</td>`;
+              });
+
+              tableRow += `<td><a href="https://caniuse.com/?search=${query}">${queryData.globalSupport}%</a></td>`;
+
+              tableRows.push(tableRow + "</tr>");
+            } else {
+              showError(`Sorry - '${query}' has no available support data`);
+            }
+          }
+
+          tableHeader.push(`<th>Global Support</th>`);
+
+          const caption =
+            captionOverride || tableCaption
+              ? `<caption>${captionOverride || tableCaption}</caption>`
+              : "";
+
+          table = `<div class="${PLUGIN}-table-container"><table class="${PLUGIN}-table">${caption}
         <thead>${tableHeader.join("")}</thead>
         <tbody>${tableRows.join("")}</tbody>
       </table>
       <p>Global support data from <a href="https://caniuse.com/">caniuse.com</a></p>
       </div>`;
+        }
+
+        return table;
       }
 
-      return table;
+      return "";
     }
-
-    return "";
-  });
+  );
 };

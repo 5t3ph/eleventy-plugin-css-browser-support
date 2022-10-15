@@ -64,6 +64,12 @@ Alternatively, render a full table showing support for one or more things, examp
 {% cssSupportTable "aspect-ratio, :focus-visible, @layer, repeat()" %}
 ```
 
+To include a `caption` for the table, add it via the plugin option `tableCaption`, or include it as a second string value when including the `cssSupportTable` shortcode.
+
+```twig
+{% cssSupportTable "aspect-ratio, :focus-visible, @layer, repeat()", "Demo browser support" %}
+```
+
 ## Supported CSS features
 
 The API is intended to work for passing features as you would write them in CSS. As such, a few things will not be available if they exist on MDN under an expanded name. For example, `>` would be available as `child`.
@@ -83,6 +89,12 @@ This plugin is BYOS (bring your own style) but you can check out [the stylesheet
 
 - `pointer-events: none` is added inline to the code and SVG icon
 - it's recommended to use a pseudo-element to extend the "hit area" of the button to cover the code element
+
+### Provided cell classes
+
+- browser header cells receive a class in the format `css-support-header--[BROWSER-NAME]`
+- cells for non-supported browsers receive the class `css-support-cell--na`
+- cells for browsers that require a flag for support receive the class `css-support-cell--flagged`
 
 ### Panel HTML
 
@@ -156,16 +168,29 @@ This plugin is BYOS (bring your own style) but you can check out [the stylesheet
     <thead>
       <tr>
         <td></td>
-        <th>Chrome</th>
+        <th class="css-support-header--chrome">Chrome</th>
+        <th class="css-support-header--edge">Edge</th>
+        <th class="css-support-header--firefox">Firefox</th>
+        <th class="css-support-header--safari">Safari</th>
+        <th>Global Support</th>
       </tr>
     </thead>
     <tbody>
       <tr>
-        <th><code>text-underline-offset</code></th>
-        <td>v87</td>
-        <td>
-          <a href="https://caniuse.com/?search=text-underline-offset">90.61%</a>
-        </td>
+        <th><code>:has()</code></th>
+        <td>v105+</td>
+        <td>v105+</td>
+        <td class="css-support-cell--flagged">v103+</td>
+        <td>v15.4+</td>
+        <td><a href="https://caniuse.com/?search=:has()">66.61%</a></td>
+      </tr>
+      <tr>
+        <th><code>@container</code></th>
+        <td>v105+</td>
+        <td>v105+</td>
+        <td class="css-support-cell--na">N/A</td>
+        <td>v16+</td>
+        <td><a href="https://caniuse.com/?search=@container">63.75%</a></td>
       </tr>
     </tbody>
   </table>
@@ -191,6 +216,7 @@ Alignment classes:
 | browserList    | array | ["chrome", "edge", "firefox", "safari"] |
 | showPanelTable | bool  | true                                    |
 | includePanelJS | bool  | true                                    |
+| tableCaption   | str   | null                                    |
 
 ## Config Examples
 

@@ -1,6 +1,6 @@
 {
   "name": "@11tyrocks/eleventy-plugin-css-browser-support",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Eleventy filters for decorating inline-code with CSS browser support data or rendering support tables. Data combined from caniuse and MDN, including version support started and global support percentages.",
   "main": ".eleventy.js",
   "scripts": {
@@ -32,9 +32,9 @@
   },
   "devDependencies": {
     "@11ty/eleventy": "^2.0.0-canary.12",
-    "terser": "^5.15.0"
+    "terser": "^5.15.1"
   },
   "dependencies": {
-    "css-browser-support": "^0.2.0"
+    "css-browser-support": "^0.2.1"
   }
 }
