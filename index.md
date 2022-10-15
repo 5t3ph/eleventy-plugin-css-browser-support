@@ -10,7 +10,7 @@ Marshmallow macaroon {{ 'repeat()' | cssSupport }} I love I love jelly beans pud
 
 Fruitcake soufflé bonbon cupcake gingerbread I love jelly beans ice cream bonbon. Sugar plum marshmallow marshmallow cake apple pie marzipan sweet tootsie roll croissant.
 
-{% cssSupportTable ":has(), @container, @layer, overscroll-behavior, :focus-visible, margin-inline, gap, repeat(), clamp(), color-contrast()" %}
+{% cssSupportTable ":has(), @container, @layer, overscroll-behavior, :focus-visible, margin-inline, gap, color-contrast()" %}
 
 Cake {{ 'gap' | cssSupport }} muffin cupcake danish. Chocolate `aspect-ratio` cake croissant tiramisu lollipop jelly lollipop cookie caramels cookie.
 
