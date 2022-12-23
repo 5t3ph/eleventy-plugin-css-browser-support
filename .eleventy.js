@@ -14,6 +14,33 @@ const panelJS = fs.readFileSync(
   "utf8"
 );
 
+const newTableHeader = (browserTitle) =>
+  `<th class="${PLUGIN}-header--${browserTitle
+    .toLowerCase()
+    .replaceAll(" ", "-")}">${browserTitle}</th>`;
+
+const newTableRow = (flagged, sinceVersion) => {
+  const support = sinceVersion
+    ? !isNaN(parseInt(sinceVersion))
+      ? `v${sinceVersion}+`
+      : sinceVersion
+    : "N/A";
+
+  let tableCellClasses;
+
+  if (flagged) {
+    tableCellClasses = `${PLUGIN}-cell--flagged`;
+  }
+
+  if (support === "N/A") {
+    tableCellClasses = `${PLUGIN}-cell--na`;
+  }
+
+  return `<td ${
+    tableCellClasses ? `class="${tableCellClasses}"` : ``
+  }>${support}</td>`;
+};
+
 const createPanelSupportTable = (
   browserList,
   query,
@@ -21,7 +48,8 @@ const createPanelSupportTable = (
   codeContent,
   showTable = true
 ) => {
-  const supportData = cssBrowserSupport(query)[query];
+  const supportData =
+    cssBrowserSupport(query)[query.replace(/@|:|\(|\)*/g, "")];
 
   if (supportData) {
     let table = "";
@@ -30,23 +58,10 @@ const createPanelSupportTable = (
       let tableRow = "";
       browserList.map((browser) => {
         const { sinceVersion, browserTitle, flagged } = supportData[browser];
-        const support = sinceVersion ? `v${sinceVersion}+` : "N/A";
-        tableHeader += `<th class="${PLUGIN}-header--${browserTitle
-          .toLowerCase()
-          .replaceAll(" ", "-")}">${browserTitle}</th>`;
-        let tableCellClasses;
 
-        if (flagged) {
-          tableCellClasses = `${PLUGIN}-cell--flagged`;
-        }
+        tableHeader += newTableHeader(browserTitle);
 
-        if (support === "N/A") {
-          tableCellClasses = `${PLUGIN}-cell--na`;
-        }
-
-        tableRow += `<td ${
-          tableCellClasses ? `class="${tableCellClasses}"` : ``
-        }>${support}</td>`;
+        tableRow += newTableRow(flagged, sinceVersion);
       });
 
       table = `<div class="${PLUGIN}-panel-table-container"><table class="${PLUGIN}-table"><caption>${label}</caption><thead>${tableHeader}</thead><tbody><tr>${tableRow}</tr></tbody></table></div>`;
@@ -111,8 +126,13 @@ module.exports = (eleventyConfig, options) => {
         }
 
         const codeBlock = m[0];
-        const query = m[1];
-        const value = m[2] ? m[2] : "";
+        let query = m[1];
+        let value = m[2] ? m[2] : "";
+
+        if (value && !query) {
+          query = value;
+          value = "";
+        }
 
         // Only attach to first instance of duplicate queries
         if (queryMatches.has(query)) continue;
@@ -123,12 +143,13 @@ module.exports = (eleventyConfig, options) => {
         const codeContent = `${query}${queryValue}`;
         const label = `Browser support for <code>${codeContent}</code>`;
         const ariaLabel = `Browser support for ${codeContent}`;
+        const panelID = query.replace(/@|:|\(|\)*/g, "");
 
         const supportPanel =
-          `<span class="${PLUGIN}-panel-container"><code>${query}${value}</code><button type="button" class="${PLUGIN}-button" aria-label="${ariaLabel}" aria-expanded="false" aria-controls="${PLUGIN}-${query}"> <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="${PLUGIN}-icon" viewBox="0 0 24 24" width="24" height="24" style="pointer-events: none"><path fill="currentColor" d="M7 17h2v-7H7Zm4 0h2V7h-2Zm4 0h2v-4h-2ZM5 21q-.8 0-1.4-.6Q3 19.8 3 19V5q0-.8.6-1.4Q4.2 3 5 3h14q.8 0 1.4.6.6.6.6 1.4v14q0 .8-.6 1.4-.6.6-1.4.6Z"/></svg></button></span>`.trim();
+          `<span class="${PLUGIN}-panel-container"><code>${query}${value}</code><button type="button" class="${PLUGIN}-button" aria-label="${ariaLabel}" aria-expanded="false" aria-controls="${PLUGIN}-${panelID}"> <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" class="${PLUGIN}-icon" viewBox="0 0 24 24" width="24" height="24" style="pointer-events: none"><path fill="currentColor" d="M7 17h2v-7H7Zm4 0h2V7h-2Zm4 0h2v-4h-2ZM5 21q-.8 0-1.4-.6Q3 19.8 3 19V5q0-.8.6-1.4Q4.2 3 5 3h14q.8 0 1.4.6.6.6.6 1.4v14q0 .8-.6 1.4-.6.6-1.4.6Z"/></svg></button></span>`.trim();
 
         supportPanels.push(
-          `<div hidden id="${PLUGIN}-${query}" class="${PLUGIN}-panel">${createPanelSupportTable(
+          `<div hidden id="${PLUGIN}-${panelID}" class="${PLUGIN}-panel">${createPanelSupportTable(
             browserList,
             query,
             label,
@@ -183,29 +204,12 @@ module.exports = (eleventyConfig, options) => {
               browserList.map((browser, i) => {
                 const { sinceVersion, browserTitle, flagged } =
                   queryData[browser];
-                const support = sinceVersion ? `v${sinceVersion}+` : "N/A";
 
                 if (!tableHeader[i + 1]) {
-                  tableHeader[
-                    i + 1
-                  ] = `<th class="${PLUGIN}-header--${browserTitle
-                    .toLowerCase()
-                    .replaceAll(" ", "-")}">${browserTitle}</th>`;
+                  tableHeader[i + 1] = newTableHeader(browserTitle);
                 }
 
-                let tableCellClasses;
-
-                if (flagged) {
-                  tableCellClasses = `${PLUGIN}-cell--flagged`;
-                }
-
-                if (support === "N/A") {
-                  tableCellClasses = `${PLUGIN}-cell--na`;
-                }
-
-                tableRow += `<td ${
-                  tableCellClasses ? `class="${tableCellClasses}"` : ``
-                }>${support}</td>`;
+                tableRow += newTableRow(flagged, sinceVersion);
               });
 
               tableRow += `<td><a href="https://caniuse.com/?search=${query}">${queryData.globalSupport}%</a></td>`;

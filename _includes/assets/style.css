@@ -192,6 +192,7 @@
 .css-support-cell--flagged {
   color: #b20f4b;
   font-style: italic;
+  white-space: nowrap;
 }
 
 .css-support-cell--flagged::after {
